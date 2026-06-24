@@ -1,0 +1,3 @@
+# 跨平台 shell 脚本统一 LF 行尾
+# 避免 Windows 的 CRLF 在 Linux 服务器上导致 bash 报错 (如 '\r': command not found)
+*.sh text eol=lf

@@ -72,6 +72,7 @@ python -u run.py --is_training 0 \
 - `layers/` — Embedding（`DataEmbedding_inverted`）、Transformer encoder、SelfAttention。
 - `utils/` — EarlyStopping、adjust_learning_rate、visual、metrics。
 - `scripts/` — 各实验脚本（`multivariate_forecasting/` 为主表）。
+- `scripts/reproduce/` — **本项目复现配套脚本**：`smoke_test.sh`（冒烟测试），后续批量训练/续测/调参脚本统一放此。
 
 ## 6. 复现策略与约定
 
