@@ -2,5 +2,9 @@ pandas==1.5.3
 scikit-learn==1.2.2
 numpy==1.23.5
 matplotlib==3.7.0
-torch==2.0.0
+# torch 不在此安装 —— 直接 pip/conda 装会得到 CPU 版或覆盖已有 GPU 版，
+# 导致 libtorch_cpu.so: undefined symbol: iJIT_NotifyEvent (conda/pip 混装 mkl 冲突)。
+# 请单独安装与机器 CUDA 匹配的 torch (本项目用 cu118，兼容 RTX 2060/4090)：
+#   pip:    pip install torch==2.0.0 --index-url https://download.pytorch.org/whl/cu118
+#   conda:  conda install pytorch==2.0.0 pytorch-cuda=11.8 -c pytorch -c nvidia
 reformer-pytorch==1.4.4

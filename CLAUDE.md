@@ -24,10 +24,11 @@
 ### 开发机（已就绪）
 - conda env：`itransformer`（Python 3.10）
 - torch 2.0.0+cu118；numpy 1.23.5, pandas 1.5.3, scikit-learn 1.2.2, matplotlib 3.7.0, reformer-pytorch 1.4.4
-- ⚠️ `requirements.txt` 默认装 **CPU 版** torch，必须手动换 CUDA 版：
+- torch 安装：cu118 版**单独装**（`requirements.txt` 已移除 torch，避免覆盖 GPU 版）：
   ```bash
-  pip install torch==2.0.0 --index-url https://download.pytorch.org/whl/cu118 --force-reinstall --no-deps
+  pip install torch==2.0.0 --index-url https://download.pytorch.org/whl/cu118
   ```
+  > ⚠️ 历史：旧 `requirements.txt` 含 `torch==2.0.0`，`pip install -r requirements.txt` 会覆盖 cu118 torch，导致 `import torch` 报 `undefined symbol: iJIT_NotifyEvent`（conda/pip 混装 mkl 冲突）。已修复。
 
 ### 服务器（待搭建）
 - 按服务器 CUDA 版本选 torch wheel（cu118 或 cu121），其余依赖同 requirements.txt。
