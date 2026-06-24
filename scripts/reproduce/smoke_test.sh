@@ -28,6 +28,9 @@ export CUDA_VISIBLE_DEVICES=$GPU
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
+# 公共环境初始化：Linux 下自动把 pip torch 的 CUDA 库加入 LD_LIBRARY_PATH
+source "$(dirname "${BASH_SOURCE[0]}")/env_setup.sh"
+
 DATA_FILE="./dataset/ETT-small/ETTh1.csv"
 
 echo "============================================================"
