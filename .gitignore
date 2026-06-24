@@ -129,3 +129,17 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# === iTransformer 复现：大文件/产物不进 git（结果统一记入 实验记录.md）===
+# 数据集（自行下载，见 CLAUDE.md §8）
+dataset/
+# 训练权重
+checkpoints/
+# 测试结果与可视化
+results/
+test_results/
+# 运行时追加写入的结果汇总文本
+result_long_term_forecast.txt
+# 权重与数组产物
+*.pth
+*.npy
