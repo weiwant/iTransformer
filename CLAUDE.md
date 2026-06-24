@@ -2,6 +2,8 @@
 
 > 本文件是本项目的"项目记忆"与操作规范，供 Claude（开发机一侧）和协作者参考。每次会话自动加载。
 
+> 📌 **当前阶段（新会话先看）**：环境就绪、冒烟通过、复现脚本齐全（`scripts/reproduce/`）；**服务器正按数据集跑全 7×4 表**。最新进度与结果见 `实验记录.md`（必读 §3 进度表 / §5 当前阶段）。
+
 ## 1. 项目概述
 
 - **目标**：复现论文 *iTransformer: Inverted Transformers Are Effective for Time Series Forecasting*（ICLR 2024 Spotlight）的 **Table 1 主表**：7 个数据集 × 4 个预测长度（pred_len = 96/192/336/720），指标 MSE / MAE。
@@ -30,10 +32,11 @@
   ```
   > ⚠️ 历史：旧 `requirements.txt` 含 `torch==2.0.0`，`pip install -r requirements.txt` 会覆盖 cu118 torch，导致 `import torch` 报 `undefined symbol: iJIT_NotifyEvent`（conda/pip 混装 mkl 冲突）。已修复。
 
-### 服务器（待搭建）
-- 按服务器 CUDA 版本选 torch wheel（cu118 或 cu121），其余依赖同 requirements.txt。
-- 多 GPU：加 `--use_multi_gpu --devices 0,1`（代码用 `nn.DataParallel`）。
-- 复现忠实度优先：**保持官方 batch_size**；4090 显存充裕，ETTh1/ETTm/Weather 单卡即可，ECL/Traffic 单卡 24GB 也能跑，多卡主要用于加速。
+### 服务器（已就绪：2× RTX 4090，Ubuntu）
+- conda env `iTransformer`（Python 3.10）+ pip cu118 torch；其余依赖 `pip install -r requirements.txt`（已去 torch）。
+- **LD_LIBRARY_PATH 已永久化**：`scripts/reproduce/env_setup.sh` 在每个脚本开头自动设置（解决 pip torch 的 cuDNN 找不到 `libnvrtc.so`）；无需手动 export。
+- 跑实验：`conda activate iTransformer && bash scripts/reproduce/run_<dataset>.sh`（详见 `scripts/reproduce/README.md`）。
+- 多 GPU：`--use_multi_gpu --devices 0,1`（`nn.DataParallel`）；但复现优先保持官方 batch_size，单卡即可，多卡主要用于并行跑不同数据集（`GPU=0 ...` / `GPU=1 ...`）。
 
 ## 4. 快速命令
 
