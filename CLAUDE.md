@@ -110,12 +110,14 @@ ETT 类 root_path=`./dataset/ETT-small/`；其余 root_path=`./dataset/<name>/`�
 
 ## 9. Git 与版本控制
 
-- 当前 `origin` 指向 thuml/iTransformer（无 push 权限）。**待用户提供自己的仓库地址后**执行：
+- `origin` = `git@github.com:weiwant/iTransformer.git`（SSH，已配置可用；本机无 HTTPS credential helper，统一用 SSH）。
+- **复现工作统一在 `reproduce` 分支进行**（已从 main 创建并推送，本地 `reproduce` 跟踪 `origin/reproduce`）。
+- 日常提交流程：
   ```bash
-  git remote set-url origin <你的仓库地址>
-  git add CLAUDE.md 实验记录.md .gitignore scripts/ <其他代码改动>
-  git commit -m "docs: 初始化复现项目指导与实验记录"
-  git push -u origin main
+  git checkout reproduce
+  git add <代码/脚本/文档>
+  git commit -m "<message>"
+  git push
   ```
 - **提交范围**：仅代码、scripts/、文档（CLAUDE.md、实验记录.md）、.gitignore。
 - **不提交**：dataset/、checkpoints/、results/、test_results/、result_long_term_forecast.txt、*.pth、*.npy（见 .gitignore）。
