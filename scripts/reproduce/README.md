@@ -15,6 +15,9 @@
 | `run_Weather.sh` | Weather 训练（21 变量） |
 | `run_ECL.sh` | Electricity 训练（321 变量） |
 | `run_Traffic.sh` | Traffic 训练（862 变量，最慢） |
+| `run_Exchange.sh` | Exchange Rate 训练（8 变量，长预测 96/192/336/720） |
+| `run_Solar.sh` | Solar-Energy 训练（137 变量，长预测 96/192/336/720，`--data Solar`） |
+| `run_PEMS.sh` | PEMS 训练（**短预测** 12/24/48/96，4 子集 03/04/07/08，参数各异） |
 
 ## 前置条件
 
@@ -29,16 +32,33 @@ conda activate iTransformer
 # 冒烟测试（验证环境）
 bash scripts/reproduce/smoke_test.sh
 
-# 按数据集训练（每个脚本跑该数据集 4 个 pred_len）
+# 长预测数据集（每个脚本跑该数据集 4 个 pred_len 96/192/336/720）
 bash scripts/reproduce/run_ETTh1.sh            # ETTh1: 96/192/336/720
+bash scripts/reproduce/run_Exchange.sh         # Exchange Rate: 长预测
+bash scripts/reproduce/run_Solar.sh            # Solar-Energy: 长预测
 bash scripts/reproduce/run_Traffic.sh 720      # 只跑 Traffic 720（久的单独跑）
 GPU=1 bash scripts/reproduce/run_ECL.sh        # 用 1 号卡
+
+# PEMS（短预测，pred_len 12/24/48/96，第一个参数选子集）
+bash scripts/reproduce/run_PEMS.sh             # 默认 PEMS04，全部 4 个 pred_len
+bash scripts/reproduce/run_PEMS.sh 08          # PEMS08 全部
+bash scripts/reproduce/run_PEMS.sh 08 12 24    # PEMS08 只跑 12/24
 ```
 
 每个 `run_*.sh` 都支持：
-- 默认跑该数据集全部 4 个 pred_len（96/192/336/720）；
+- 默认跑该数据集全部 4 个 pred_len（PEMS 为 12/24/48/96，其余为 96/192/336/720）；
 - 传参指定 pred_len：`bash run_XX.sh 96 192`；
 - `GPU=N` 环境变量选卡（默认 0）。
+
+`run_PEMS.sh` 额外约定：**第一个参数是子集号**（03/04/07/08，默认 04），其后的参数才是 pred_len。
+
+## 数据集对照
+
+| 脚本 | `--data` | `--root_path` / `--data_path` | enc_in | pred_len | 说明 |
+|---|---|---|---|---|---|
+| run_Exchange.sh | custom | `./dataset/exchange_rate/` `exchange_rate.csv` | 8 | 96/192/336/720 | 长预测 |
+| run_Solar.sh | Solar | `./dataset/Solar/` `solar_AL.txt` | 137 | 96/192/336/720 | 长预测，目录首字母大写 |
+| run_PEMS.sh | PEMS | `./dataset/PEMS/` `PEMS0X.npz` | 307/358/883/170 | 12/24/48/96 | **短预测**，4 子集参数各异（见脚本内 `pems_params`） |
 
 ## 关于 LD_LIBRARY_PATH（Linux 服务器）
 
@@ -56,3 +76,8 @@ pip 装的 torch 把 CUDA 库放在 `site-packages/nvidia/*/lib/`，Linux 默认
 ## 参数来源
 
 各数据集超参取自官方 `scripts/multivariate_forecasting/<集>/iTransformer*.sh`（详见 CLAUDE.md §7）。通用默认 `train_epochs=10 patience=3 lradj=type1`（run.py 默认，脚本不显式传）。
+
+补充说明：
+- **Exchange**：官方脚本在 `pred_len=336` 段含 `--train_epochs 1`（疑为笔误，只训 1 epoch 会令结果异常且与其余 pred_len 不一致），本脚本**不照搬**，统一用默认 `train_epochs=10`（见 CLAUDE.md §6 第二阶段策略）。
+- **PEMS**：各子集（03/04/07/08）、各 pred_len 的 `e_layers / batch_size / learning_rate / use_norm` 不同，已内置查表函数 `pems_params`，来源逐字对照官方 4 个 `iTransformer_0X.sh`。
+- **Solar / Exchange**：`batch_size` 用 run.py 默认 32（官方未显式指定）。

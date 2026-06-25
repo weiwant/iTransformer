@@ -6,7 +6,9 @@
 
 ## 1. 项目概述
 
-- **目标**：复现论文 *iTransformer: Inverted Transformers Are Effective for Time Series Forecasting*（ICLR 2024 Spotlight）的 **Table 1 主表**：7 个数据集 × 4 个预测长度（pred_len = 96/192/336/720），指标 MSE / MAE。
+- **目标**：复现论文 *iTransformer: Inverted Transformers Are Effective for Time Series Forecasting*（ICLR 2024 Spotlight）的 **Table 1 主表**：多变量预测（features=M, seq_len=96），指标 MSE / MAE。
+  - **长预测**（pred_len 96/192/336/720）：ETTh1/ETTh2/ETTm1/ETTm2/Weather/Electricity(ECL)/Traffic，**+ Exchange Rate / Solar-Energy**（共 9 个）。
+  - **短预测**（pred_len 12/24/48/96）：PEMS（4 子集 03/04/07/08，参数各异）。
 - **源码**：来自官方仓库 thuml/iTransformer（基于 Time-Series-Library 框架）。
 - **进度台账**：见同目录 `实验记录.md`（唯一的实验结果记录，持续更新）。
 - **参照记录**：早期复现（2026-05-15，RTX 2060）记录在 `D:\wqWork\论文\开题报告\周报\0520\T4_iTransformer复现\`（实验记录.md / 实验操作手册.md / 图表解读.md）。
@@ -76,7 +78,7 @@ python -u run.py --is_training 0 \
 - `layers/` — Embedding（`DataEmbedding_inverted`）、Transformer encoder、SelfAttention。
 - `utils/` — EarlyStopping、adjust_learning_rate、visual、metrics。
 - `scripts/` — 各实验脚本（`multivariate_forecasting/` 为主表）。
-- `scripts/reproduce/` — **本项目复现配套脚本**（见 `scripts/reproduce/README.md`）：`env_setup.sh`（公共环境，自动设 LD_LIBRARY_PATH）、`smoke_test.sh`（冒烟测试）、`run_<dataset>.sh`（按数据集训练，7 个）。
+- `scripts/reproduce/` — **本项目复现配套脚本**（见 `scripts/reproduce/README.md`）：`env_setup.sh`（公共环境，自动设 LD_LIBRARY_PATH）、`smoke_test.sh`（冒烟测试）、`run_<dataset>.sh`（按数据集训练）。**长预测 9 个**：ETTh1/ETTh2/ETTm1/ETTm2/Weather/ECL/Traffic/Exchange/Solar；**短预测 1 个**：`run_PEMS.sh`（首参为子集号，参数经 `pems_params` 查表，勿手填）。
 
 ## 6. 复现策略与约定
 
@@ -96,8 +98,12 @@ python -u run.py --is_training 0 \
 | Weather | custom | weather.csv | 21 | 3 | 512 | 512 | 32 | 0.0001 |
 | Electricity(ECL) | custom | electricity.csv | 321 | 3 | 512 | 512 | 16 | 0.0005 |
 | Traffic | custom | traffic.csv | 862 | 4 | 512 | 512 | 16 | 0.001 |
+| Exchange | custom | exchange_rate.csv | 8 | 2 | 128 | 128 | 32 | 0.0001 |
+| Solar | Solar | solar_AL.txt | 137 | 2 | 512 | 512 | 32 | 0.0005 |
 
-ETT 类 root_path=`./dataset/ETT-small/`；其余 root_path=`./dataset/<name>/`。
+ETT 类 root_path=`./dataset/ETT-small/`；其余 root_path=`./dataset/<name>/`（Exchange→`exchange_rate/`、Solar→`Solar/`首字母大写、PEMS→`PEMS/`）。
+
+> **PEMS（短预测，pred_len 12/24/48/96，非长预测）**：4 子集参数各异，详见 `scripts/reproduce/run_PEMS.sh` 内 `pems_params` 查表（enc_in：03=358 / 04=307 / 07=883 / 08=170；e_layers / batch / lr / use_norm 随子集与 pred_len 变）。直接用脚本，勿手填。
 
 通用默认（脚本未显式指定时）：`seq_len=96 label_len=48 train_epochs=10 patience=3 lradj=type1 n_heads=8 dropout=0.1 embed=timeF use_norm=True factor=1 activation=gelu`。
 
@@ -112,6 +118,8 @@ ETT 类 root_path=`./dataset/ETT-small/`；其余 root_path=`./dataset/<name>/`�
 5. **中断续测**：训练被意外关闭（如 Traffic）但已存 checkpoint，用 `--is_training 0` 直接加载评估。
 6. **result_long_term_forecast.txt 是追加写入**：会累积历史结果，区分新旧需看 setting 名。
 7. **脚本里 CUDA_VISIBLE_DEVICES 可能写死成 1/2**：本机单卡改成 0。
+8. **PEMS 是短预测**：pred_len=12/24/48/96（非主表长预测 96/192/336/720），4 子集参数各异，用 `run_PEMS.sh <子集号>`；勿套用长预测参数。
+9. **Exchange train_epochs 笔误**：官方 `Exchange/iTransformer.sh` 的 pred_len=336 段含 `--train_epochs 1`（疑笔误），`run_Exchange.sh` 已修正为默认 10。
 
 ## 9. Git 与版本控制
 
