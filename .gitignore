@@ -143,3 +143,5 @@ result_long_term_forecast.txt
 # 权重与数组产物
 *.pth
 *.npy
+# 本地学习笔记（不入库）
+实验7.2.md
