@@ -26,7 +26,13 @@
 ## 3. 环境
 
 ### 开发机（已就绪）
-- conda env：`itransformer`（Python 3.10）
+- conda env：`itransformer`（Python 3.10），安装位置 `D:\SoftWare22\miniconda\envs\itransformer`。
+- **运行 python（重要，避免每次试错）**：本机 Git Bash / Claude Code 的 bash 工具里 **`conda` 不在 PATH**，`conda activate`、`conda run -n itransformer` 都会报 `command not found`。**直接用 env 的解释器绝对路径调用**（首选方式）：
+  ```bash
+  "D:/SoftWare22/miniconda/envs/itransformer/python.exe" run.py --is_training 1 ...
+  "D:/SoftWare22/miniconda/envs/itransformer/python.exe" scripts/reproduce/extract_results_full.py
+  ```
+  > 该 env 是本机唯一带 cu118 torch + 全部依赖的解释器；用裸 `python` 可能落到别的默认/系统环境而出错。本机所有 conda env 列表见 `~/.conda/environments.txt`（miniconda 装在 `D:\SoftWare22\miniconda`）。
 - torch 2.0.0+cu118；numpy 1.23.5, pandas 1.5.3, scikit-learn 1.2.2, matplotlib 3.7.0, reformer-pytorch 1.4.4
 - torch 安装：cu118 版**单独装**（`requirements.txt` 已移除 torch，避免覆盖 GPU 版）：
   ```bash
@@ -42,7 +48,7 @@
 
 ## 4. 快速命令
 
-入口统一是 `python -u run.py`（Windows 用 `set CUDA_VISIBLE_DEVICES=0`，Linux/bash 用 `export`）。
+入口统一是 `python -u run.py`（Windows 用 `set CUDA_VISIBLE_DEVICES=0`，Linux/bash 用 `export`）。下文示例为命令骨架；**在本机 bash 里实际执行时，把 `python` 换成 §3 的 env 绝对路径** `"D:/SoftWare22/miniconda/envs/itransformer/python.exe"`（`conda` 不在 PATH）。服务器上则先 `conda activate iTransformer` 再用 `python`。
 
 **训练 + 自动测试**（`--is_training 1`）：
 ```bash
