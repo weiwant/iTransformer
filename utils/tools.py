@@ -1,4 +1,5 @@
 import os
+import math
 
 import numpy as np
 import torch
@@ -17,6 +18,16 @@ def adjust_learning_rate(optimizer, epoch, args):
             2: 5e-5, 4: 1e-5, 6: 5e-6, 8: 1e-6,
             10: 5e-7, 15: 1e-7, 20: 5e-8
         }
+    elif args.lradj == 'cosine':
+        # cosine: 每个 epoch 都更新（type1/type2 仅在 key 命中时更新，故单独分支后 return）
+        # epoch 为调用处传入的 1-based 值（exp_long_term_forecasting.py 传 epoch+1）
+        # T_max 对齐 train_epochs，使 lr 从 base 平滑衰减到 ~0
+        T_max = max(args.train_epochs, 1)
+        lr = args.learning_rate * 0.5 * (1 + math.cos(math.pi * epoch / T_max))
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
+        print('Updating learning rate to {}'.format(lr))
+        return
     if epoch in lr_adjust.keys():
         lr = lr_adjust[epoch]
         for param_group in optimizer.param_groups:
