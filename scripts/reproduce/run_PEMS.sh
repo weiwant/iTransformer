@@ -9,6 +9,8 @@
 #   bash scripts/reproduce/run_PEMS.sh 08 12 24        # PEMS08 只跑 12/24
 #   bash scripts/reproduce/run_PEMS.sh 03 12 24 48 96  # PEMS03 指定 pred_len
 #   GPU=1 bash scripts/reproduce/run_PEMS.sh 04        # 1 号卡
+#   EPOCHS=30 bash scripts/reproduce/run_PEMS.sh 03 96  # 单seed但训30epoch (让没早停/未收敛项充分训练)
+#   ITR=5 EPOCHS=30 GPU=0 bash scripts/reproduce/run_PEMS.sh 03 96  # 5seed×30epoch (多seed+充分收敛)
 # 数据: ./dataset/PEMS/PEMS0X.npz   (PEMS03.npz / PEMS04.npz / PEMS07.npz / PEMS08.npz)
 # 结果: results/PEMS0X_96_*/metrics.npy + result_long_term_forecast.txt
 # ⚠️ pl48/96 发散修复 (2026-06-30): lr 减半(0.001→0.0005) + grad_clip=1.0; pl12/24 保持官方原参.
@@ -91,7 +93,8 @@ for pl in $PLS; do
     --use_norm "$un" \
     --grad_clip "$gclip" \
     --des Exp \
-    --itr 1
+    --itr "${ITR:-1}" \
+    --train_epochs "${EPOCHS:-10}"
 done
 
 echo "============================================================"
