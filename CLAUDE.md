@@ -2,7 +2,7 @@
 
 > 本文件是本项目的"项目记忆"与操作规范，供 Claude（开发机一侧）和协作者参考。每次会话自动加载。
 
-> 📌 **当前阶段（新会话先看）**：**长预测复现完成**（36/36，论文值已对照 Table 10 订正，偏差全部 <8%、33/36 <3%；第二阶段调参经复盘证伪、无需进行）；**下一步：PEMS 48/96 发散问题 debug**。最新进度与结果见 `实验记录.md`（必读 §3 进度表 / §5 当前阶段 / §7.2 复盘）。
+> 📌 **当前阶段（新会话先看）**：**长预测复现完成**（36/36，论文值已对照 Table 10 订正，偏差全部 <8%、33/36 <3%；第二阶段调参经复盘证伪、无需进行）；**PEMS 短预测 pl48/96 发散已定位并修复**（根因=训练循环无梯度裁剪 + 官方高 lr，epoch1→2 梯度爆炸；修复=`--grad_clip 1.0` + lr 减半到 0.0005，本机 PEMS08 pl96 验证 0.439(+99%)→0.306(+38%) 收敛）；**待服务器重跑 pl48/96 回填结果**。详见 §8.10 与 `实验记录.md` §4.2。
 
 ## 1. 项目概述
 
@@ -126,6 +126,7 @@ ETT 类 root_path=`./dataset/ETT-small/`；其余 root_path=`./dataset/<name>/`�
 7. **脚本里 CUDA_VISIBLE_DEVICES 可能写死成 1/2**：本机单卡改成 0。
 8. **PEMS 是短预测**：pred_len=12/24/48/96（非主表长预测 96/192/336/720），4 子集参数各异，用 `run_PEMS.sh <子集号>`；勿套用长预测参数。
 9. **Exchange train_epochs 笔误**：官方 `Exchange/iTransformer.sh` 的 pred_len=336 段含 `--train_epochs 1`（疑笔误），`run_Exchange.sh` 已修正为默认 10。
+10. **PEMS pl48/96 训练发散（已修复，2026-06-30）**：iTransformer 训练循环原本**无梯度裁剪**（`exp_long_term_forecasting.py` 的 `loss.backward(); model_optim.step()`），PEMS 在官方高 lr(0.001) + 长 pred_len(`projector=Linear(d_model,pred_len)` 输出维度大) 下，**epoch1→2 之间单步梯度爆炸**，vali loss 翻倍飙升、best 永远卡 epoch1，导致 PEMS03 pl96 +918% / PEMS07 +698% / PEMS08 +99%。根因**非硬件**（本机 RTX2060 完整复现）。修复（已入 `run_PEMS.sh` 查表）：pl48/96 加 `--grad_clip 1.0` + lr 减半到 0.0005（PEMS04 本就 0.0005，只加 clip）；pl12/24 保持原参不动（已达标）。`run.py` 新增 `--grad_clip`（默认 0=关闭，**不影响长预测已复现结果**）。若仍偏差大可加多 seed（论文 Table 5 用 5 seed 平均；需改 `run.py` 把 `fix_seed` 移入 itr 循环 `2023+ii` 并补 `cuda.manual_seed_all`）。
 
 ## 9. Git 与版本控制
 
