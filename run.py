@@ -6,11 +6,6 @@ import random
 import numpy as np
 
 if __name__ == '__main__':
-    fix_seed = 2023
-    random.seed(fix_seed)
-    torch.manual_seed(fix_seed)
-    np.random.seed(fix_seed)
-
     parser = argparse.ArgumentParser(description='iTransformer')
 
     # basic config
@@ -108,6 +103,12 @@ if __name__ == '__main__':
 
     if args.is_training:
         for ii in range(args.itr):
+            # multi-seed: 每个 ii 用不同 seed (ii=0 → 2023, 与历史单 seed 复现一致; itr>1 时取均值≈论文 Table 5)
+            fix_seed = 2023 + ii
+            random.seed(fix_seed)
+            torch.manual_seed(fix_seed)
+            np.random.seed(fix_seed)
+            torch.cuda.manual_seed_all(fix_seed)
             # setting record of experiments
             setting = '{}_{}_{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_eb{}_dt{}_{}_{}'.format(
                 args.model_id,
